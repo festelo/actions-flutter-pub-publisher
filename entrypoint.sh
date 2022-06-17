@@ -2,7 +2,7 @@
 
 set -e
 
-check_credentials() {
+check_credentials_exist() {
   echo "Check credentials"
   if [ -z "$INPUT_CREDENTIAL" ]; then
     echo "Missing credential"
@@ -18,7 +18,13 @@ copy_credential() {
 $INPUT_CREDENTIAL
 EOF
   mkdir -p ~/.pub-cache
-  ln -s ~/Library/Application\ Support/dart/pub-credentials.json credentials.json
+  
+  mkdir -p ~/.config/dart
+  cat <<EOF > ~/.config/dart/pub-credentials.json
+$INPUT_CREDENTIAL
+EOF
+  mkdir -p ~/.pub-cache
+  
   echo "OK"
 }
 
@@ -58,6 +64,13 @@ create_prefix() {
   fi
 }
 
+
+check_credentials_valid() {
+  echo "Check credentials valid"
+  $EXECUTABLE_PREFIX pub login
+  echo "OK"
+}
+
 dry_run() {
   echo "Executing package validation"
   $EXECUTABLE_PREFIX pub publish --dry-run
@@ -71,9 +84,10 @@ publish_package() {
   fi
 }
 
-check_credentials
+check_credentials_exist
 copy_credential
+create_prefix
+check_credentials_valid
 switch_working_directory
 run_test_if_needed
-create_prefix
 publish_package
